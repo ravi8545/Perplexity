@@ -1,0 +1,98 @@
+import UserModel from "../models/user.model.js";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../services/mail.service.js";
+
+
+
+export async function register(req, res) {
+    const { username, email, password } = req.body;
+
+    const isUserAlreadyExists = await UserModel.findOne({
+        $or: [{ email }, { username }]
+    });
+
+    if (isUserAlreadyExists) {
+        return res.status(409).json({
+            message: "User with the given email or username already exists",
+            success: false,
+            err: "User already exists"
+        });
+    }
+
+    const user = await UserModel.create({ username, email, password });
+
+    const emailVerificationToken = jwt.sign(
+        { email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+    );
+
+
+
+    await sendEmail({
+        to: email,
+        subject: "Welcome to Perplexity - Please Verify Your Email",
+        html: `
+    <p>Hello <strong>${username}</strong>,</p>
+
+    <p>Thanks for registering on <strong>Perplexity</strong>.</p>
+
+    <p>
+      Click below to verify your email:
+    </p>
+
+    <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
+       style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
+       Verify Email
+    </a>
+
+    <p>If you didn’t sign up, ignore this email.</p>
+  `
+    });
+
+    return res.status(201).json({
+        message: "User registered successfully",
+        success: true,
+        user: {
+            id: user._id,
+            username: user.username,
+            email: user.email
+        }
+    })
+}
+
+export async function verifyEmail(req, res) {
+    const { token } = req.query;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await UserModel.findOne({ email: decoded.email });
+
+    if (!user) {
+        return res.status(404).json({
+            message: "Invalid token",
+            success: false,
+            err: "User not found"
+        })
+    }
+    console.log(user)
+
+    user.verified = true;
+       console.log(user)
+
+    await user.save();
+
+    const html = `
+  <h1>Email Verified ✅</h1>
+  <p>Your email has been successfully verified. You can now log in to your account.</p>
+
+  <a href="http://localhost:3000/login"
+     style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
+     Go to Login
+  </a>
+`;
+
+    res.send(html);
+}
+
+
