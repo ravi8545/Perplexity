@@ -1,6 +1,6 @@
 import { body, validationResult } from "express-validator";
 
-// ✅ Validation middleware (FIXED)
+// ✅ Validation middleware 
 const validate = (req, res, next) => {
     const errors = validationResult(req);
 
@@ -58,3 +58,14 @@ export const registerValidator = [
 
     validate 
 ];
+
+export const loginValidator = [
+    body("email")
+        .trim()
+        .notEmpty().withMessage("Email is required")
+        .isEmail().withMessage("Email must be valid"),
+        
+    body("password")
+        .notEmpty().withMessage("Password is required"),
+        validate
+]
