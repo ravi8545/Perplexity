@@ -14,6 +14,8 @@ app.get('/', (req, res) => {
 	res.json({ message: 'Server is running' });
 });
 
+// routes
+
 app.use('/api/auth', authRouter);
 
 

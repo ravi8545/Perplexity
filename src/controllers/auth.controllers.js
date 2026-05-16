@@ -28,7 +28,6 @@ export async function register(req, res) {
     );
 
 
-
     await sendEmail({
         to: email,
         subject: "Welcome to Perplexity - Please Verify Your Email",
@@ -67,8 +66,6 @@ export async function verifyEmail(req, res) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-
-
         const user = await UserModel.findOne({ email: decoded.email });
 
         if (!user) {
@@ -78,11 +75,7 @@ export async function verifyEmail(req, res) {
                 err: "User not found"
             })
         }
-        console.log(user)
-
         user.verified = true;
-        console.log(user)
-
         await user.save();
 
         const html = `
@@ -172,7 +165,7 @@ export async function getMe(req, res) {
 
     res.status(200).json({
         message: "User details fetched successfully",
-        success: true, 
+        success: true,
         user
     })
 }
