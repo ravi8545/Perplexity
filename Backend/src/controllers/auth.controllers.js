@@ -75,6 +75,18 @@ export async function verifyEmail(req, res) {
                 err: "User not found"
             })
         }
+        if (user.verified) {
+            const html = `
+        <h1>Email Already Verified ✅</h1>
+          <p>Your email has already been verified. You can log in to your account.</p>      
+           <a href="http://localhost:3000/login"
+             style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
+            Go to Login
+    </a>`;
+
+            return res.send(html);
+
+        }
         user.verified = true;
         await user.save();
 

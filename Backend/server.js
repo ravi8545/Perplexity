@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
  
 testAI();
 connectDB()
+
 .catch((err) => {
     console.error('Mongodb connection failed:', err);
     process.exit(1);

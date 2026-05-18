@@ -21,4 +21,6 @@ authRouter.get("/get-me", authUser, getMe);
 
 authRouter.get("/verify-email", verifyEmail);
 
+authRouter.get("/register/resend-email", resendEmail);
+
 export default authRouter;
