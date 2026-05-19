@@ -149,12 +149,19 @@ export async function login(req, res) {
         { expiresIn: "7d" }
     );
 
-    res.cookie("token", token);
+    res.cookie("token", token, {
+        httpOnly: true,
+        sameSite: "none",
+        secure: false,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
+    });
 
     res.status(200).json({
         message: "Login successful",
         success: true,
         user: {
+            _id: user._id,
             id: user._id,
             username: user.username,
             email: user.email

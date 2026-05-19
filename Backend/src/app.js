@@ -1,10 +1,18 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.routes.js';
+import morgan from 'morgan';
+import cors from 'cors';
 
 const app = express();
 
 //middlewares
+app.use(cors({
+	origin: 'http://localhost:5173', // Update this to match your frontend URL
+	credentials: true, // Allow cookies to be sent
+	methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+}));
+app.use(morgan('dev')); 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
