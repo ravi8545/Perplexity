@@ -1,6 +1,7 @@
 import { useDispatch } from "react-redux";
 import { register, login, getMe } from "../service/auth.api.js";
 import { setUser, setLoading, setError } from "../auth.slice.js";
+import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
 export function useAuth() {
     const dispatch = useDispatch();
@@ -37,6 +38,10 @@ export function useAuth() {
                 _id: data.user._id ?? data.user.id,
             }));
 
+            // Initialize socket connection after successful login
+            console.log('Initializing socket connection...');
+            initializeSocketConnection();
+
         } catch (error) {
             console.log('Login error:', error);
             const errorMessage = error.response?.data?.message || "Login failed. Please check your credentials.";
@@ -51,9 +56,10 @@ export function useAuth() {
             dispatch(setLoading(true));
 
             const data = await getMe();
-
+            console.log('GetMe successful:', data.user);
             dispatch(setUser(data.user));
         } catch (error) {
+            console.log('GetMe failed:', error.response?.status, error.response?.data);
             dispatch(setError(error.response?.data?.message || "Failed to fetch user details."));
         } finally {
             dispatch(setLoading(false));

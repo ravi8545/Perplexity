@@ -13,11 +13,10 @@ const Login = () => {
   const { user, error, loading } = useSelector(state => state.auth)
 
   useEffect(() => {
-    if (user && user._id) {
-      console.log('User logged in successfully:', user)
+    if (!loading && user && user._id) {
       navigate('/')
     }
-  }, [user, navigate])
+  }, [user, loading, navigate])
 
   useEffect(() => {
     if (error) {

@@ -113,62 +113,87 @@ export async function verifyEmail(req, res) {
 }
 
 export async function login(req, res) {
-    const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-    const user = await UserModel.findOne({ email });
-
-    if (!user) {
-        return res.status(404).json({
-            message: "User with the given email does not exist",
-            success: false,
-            err: "User not found"
-        })
-    }
-    const isPasswordMatch = await user.comparePassword(password);
-
-    if (!isPasswordMatch) {
-        return res.status(401).json({
-            message: "Incorrect password",
-            success: false,
-            err: "Invalid credentials"
-        })
-    }
-    if (!user.verified) {
-        return res.status(400).json({
-            message: "Email not verified",
-            success: false,
-            err: "Please verify your email before logging in"
-        })
-    }
-    const token = jwt.sign(
-        {
-            id: user._id,
-            username: user.username
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-    );
-
-    res.cookie("token", token, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: false,
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/',
-    });
-
-    res.status(200).json({
-        message: "Login successful",
-        success: true,
-        user: {
-            _id: user._id,
-            id: user._id,
-            username: user.username,
-            email: user.email
+        // Validate input
+        if (!email?.trim() || !password?.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required",
+            });
         }
-    })
 
+        // Find user
+        const user = await UserModel.findOne({
+            email: email.trim(),
+        });
 
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User with the given email does not exist",
+            });
+        }
+
+        // Check email verification
+        if (!user.verified) {
+            return res.status(400).json({
+                success: false,
+                message: "Please verify your email before logging in",
+            });
+        }
+
+        // Compare password
+        const isPasswordMatch = await user.comparePassword(password);
+
+        if (!isPasswordMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password",
+            });
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+            {
+                id: user._id,
+                username: user.username,
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "7d",
+            }
+        );
+
+        // Set cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite:
+                process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
+
+        // Send response
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+            },
+        });
+    } catch (error) {
+        console.error("Login Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
+    }
 }
 
 export async function getMe(req, res) {
