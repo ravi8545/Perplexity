@@ -4,8 +4,6 @@ import { useChat } from '../hooks/useChat.js'
 import { useEffect } from 'react'
 
 
-
-
 const Dashboards = () => {
 
   const chat = useChat()
@@ -15,7 +13,7 @@ const Dashboards = () => {
 
     useEffect(()=>{
       chat.initializeSocketConnection()
-    })
+    }, [])
   return (
     <div>Dashboards</div>
   )
