@@ -230,5 +230,85 @@ export async function getMe(req, res) {
     })
 }
 
+export async function resendVerificationEmail(req, res) {
+    try {
 
+        const { email } = req.body;
+        const user = await UserModel.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with this email",
+            });
+        }
+
+        if (user.verified) {
+            return res.status(400).json({
+                success: false,
+                message: "Email is already verified. You can log in.",
+            });
+        }
+
+        // Rate-limit: allow resend only once every 60 seconds
+        const cooldownMs = 60 * 1000;
+        const lastSent = user.updatedAt || user.createdAt;
+        if (Date.now() - new Date(lastSent).getTime() < cooldownMs) {
+            return res.status(429).json({
+                success: false,
+                message: "Please wait at least 60 seconds before requesting another email",
+            });
+        }
+
+        const emailVerificationToken = jwt.sign(
+            { email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        await sendEmail({
+            to: user.email,
+            subject: "Perplexity - Verify Your Email",
+            html: buildVerificationEmailHtml(user.username, emailVerificationToken),
+        });
+
+        // Touch updatedAt so cooldown timer resets
+        user.updatedAt = new Date();
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Verification email sent successfully. Please check your inbox.",
+        });
+    } catch (error) {
+        console.error("Resend verification email error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to send verification email. Please try again later.",
+            err: error.message,
+        });
+    }
+}
+
+export async function logout(req, res) {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully",
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Logout failed. Please try again.",
+        });
+    }
+}
 

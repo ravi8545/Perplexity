@@ -72,3 +72,15 @@ export const loginValidator = [
         .notEmpty().withMessage("Password is required"),
     validate,
 ]
+
+// ✅ Resend Verification Validator
+export const resendVerificationValidator = [
+    body("email")
+        .trim()
+        .notEmpty().withMessage("Email is required")
+        .bail()
+        .isEmail().withMessage("Email must be valid")
+        .bail()
+        .normalizeEmail(),
+    validate,
+]
