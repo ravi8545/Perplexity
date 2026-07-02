@@ -4,6 +4,25 @@ import { sendEmail } from "../services/mail.service.js";
 
 
 
+function buildVerificationEmailHtml(username, emailVerificationToken) {
+    return `
+    <p>Hello <strong>${username}</strong>,</p>
+
+    <p>Thanks for registering on <strong>Perplexity</strong>.</p>
+
+    <p>
+      Click below to verify your email:
+    </p>
+
+    <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
+       style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
+       Verify Email
+    </a>
+
+    <p>If you didn’t sign up, ignore this email.</p>
+  `;
+}
+
 export async function register(req, res) {
     const { username, email, password } = req.body;
 
@@ -27,27 +46,21 @@ export async function register(req, res) {
         { expiresIn: "1d" }
     );
 
+    try {
+        await sendEmail({
+            to: user.email,
+            subject: "Welcome to Perplexity - Please Verify Your Email",
+            html: buildVerificationEmailHtml(user.username, emailVerificationToken)
+        });
+    } catch (error) {
+        console.error("Verification email send failed during register:", error);
 
-    await sendEmail({
-        to: email,
-        subject: "Welcome to Perplexity - Please Verify Your Email",
-        html: `
-    <p>Hello <strong>${username}</strong>,</p>
-
-    <p>Thanks for registering on <strong>Perplexity</strong>.</p>
-
-    <p>
-      Click below to verify your email:
-    </p>
-
-    <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
-       style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
-       Verify Email
-    </a>
-
-    <p>If you didn’t sign up, ignore this email.</p>
-  `
-    });
+        return res.status(500).json({
+            message: "User registered, but verification email could not be sent. Please try the resend option.",
+            success: false,
+            err: error.message
+        });
+    }
 
     return res.status(201).json({
         message: "User registered successfully",
@@ -115,9 +128,10 @@ export async function verifyEmail(req, res) {
 export async function login(req, res) {
     try {
         const { email, password } = req.body;
+        const normalizedEmail = email?.trim().toLowerCase();
 
         // Validate input
-        if (!email?.trim() || !password?.trim()) {
+        if (!normalizedEmail || !password?.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Email and password are required",
@@ -126,7 +140,7 @@ export async function login(req, res) {
 
         // Find user
         const user = await UserModel.findOne({
-            email: email.trim(),
+            email: normalizedEmail,
         });
 
         if (!user) {
@@ -176,6 +190,8 @@ export async function login(req, res) {
             path: "/",
         });
 
+
+
         // Send response
         return res.status(200).json({
             success: true,
@@ -213,5 +229,6 @@ export async function getMe(req, res) {
         user
     })
 }
+
 
 
