@@ -4,7 +4,7 @@ import {ChatMistralAI} from "@langchain/mistralai";
 
 
 const geminiModel = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash-lite",
+    model: "gemini-3.5-flash",
     apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -16,16 +16,18 @@ const mistralModel = new ChatMistralAI({
 
 
 export async function generateResponse(messages){
-   const response = await geminiModel.invoke(
-    messages.map(msg=>{
-        if(msg.role=="user"){
-            return new HumanMessage(msg.content)
-        }else if(msg.role=="ai"){
-            return new AIMessage(msg.content)
-        }
-    })
-   );
-    return response.text;
+   const formattedMessages = [
+       new SystemMessage("You are a helpful AI assistant. You have access to the conversation history provided in this sequence. Use it to answer questions about past messages, context, or follow-ups."),
+       ...messages.map(msg=>{
+           if(msg.role=="user"){
+               return new HumanMessage(msg.content)
+           }else if(msg.role=="ai"){
+               return new AIMessage(msg.content)
+           }
+       })
+   ];
+   const response = await geminiModel.invoke(formattedMessages);
+   return response.text;
 }
 
 export async function generateChatTitle(message) {

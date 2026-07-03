@@ -4,7 +4,8 @@ import messageModel from "../models/message.model.js";
 
 
 export async function sendMessage(req, res) {
-    const { message, chat: chatId } = req.body;
+    const { message } = req.body;
+    const chatId = req.body.chatId || req.body.chat;
 
     let title = null, chat = null;
 
@@ -23,8 +24,8 @@ export async function sendMessage(req, res) {
     })
 
     const messages = await messageModel.find({
-        chat: chat._id
-    })
+        chat: chatId || chat._id
+    }).sort({ createdAt: 1 });
 
     const result = await generateResponse(messages);
 
