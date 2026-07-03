@@ -4,7 +4,7 @@ import {ChatMistralAI} from "@langchain/mistralai";
 
 
 const geminiModel = new ChatGoogleGenerativeAI({
-    model: "gemini-3.5-flash",
+    model: "gemini-3.1-flash-lite",
     apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -25,7 +25,9 @@ export async function generateResponse(messages){
                return new AIMessage(msg.content)
            }
        })
-   ];
+   ]
+
+   ;
    const response = await geminiModel.invoke(formattedMessages);
    return response.text;
 }
