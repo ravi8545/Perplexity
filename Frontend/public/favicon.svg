@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#20B2AA"/>
+      <stop offset="50%" stop-color="#00CED1"/>
+      <stop offset="100%" stop-color="#7B68EE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00CED1" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#20B2AA" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#glow)"/>
+  <path d="M32 8 L32 56 M8 32 L56 32 M14 14 L50 50 M50 14 L14 50" stroke="url(#g1)" stroke-width="1.5" stroke-opacity="0.3" fill="none"/>
+  <circle cx="32" cy="32" r="12" fill="none" stroke="url(#g1)" stroke-width="2.5"/>
+  <circle cx="32" cy="32" r="5" fill="url(#g1)"/>
+  <circle cx="32" cy="20" r="3" fill="#00CED1"/>
+  <circle cx="32" cy="44" r="3" fill="#20B2AA"/>
+  <circle cx="20" cy="32" r="3" fill="#7B68EE"/>
+  <circle cx="44" cy="32" r="3" fill="#00CED1"/>
+  <line x1="32" y1="27" x2="32" y2="23" stroke="#00CED1" stroke-width="1.5"/>
+  <line x1="32" y1="37" x2="32" y2="41" stroke="#20B2AA" stroke-width="1.5"/>
+  <line x1="27" y1="32" x2="23" y2="32" stroke="#7B68EE" stroke-width="1.5"/>
+  <line x1="37" y1="32" x2="41" y2="32" stroke="#00CED1" stroke-width="1.5"/>
+</svg>

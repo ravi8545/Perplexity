@@ -90,12 +90,27 @@ export async function verifyEmail(req, res) {
         }
         if (user.verified) {
             const html = `
-        <h1>Email Already Verified ✅</h1>
-          <p>Your email has already been verified. You can log in to your account.</p>      
-           <a href="http://localhost:3000/login"
-             style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
-            Go to Login
-    </a>`;
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta http-equiv="refresh" content="3;url=http://localhost:5173/login" />
+              <style>
+                body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #0a0a0f; color: #f0f0f5; text-align: center; margin: 0; }
+                h1 { color: #00d68f; margin-bottom: 10px; }
+                p { color: #9898b0; margin-bottom: 20px; }
+                a { display: inline-block; padding: 10px 20px; background: #20B2AA; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; }
+                a:hover { background: #1a9e97; }
+              </style>
+            </head>
+            <body>
+              <h1>Email Already Verified ✅</h1>
+              <p>Your email has already been verified. Redirecting to login...</p>      
+              <a href="http://localhost:5173/login">Go to Login Now</a>
+              <script>
+                setTimeout(function() { window.location.href = "http://localhost:5173/login"; }, 3000);
+              </script>
+            </body>
+            </html>`;
 
             return res.send(html);
 
@@ -104,14 +119,27 @@ export async function verifyEmail(req, res) {
         await user.save();
 
         const html = `
-  <h1>Email Verified ✅</h1>
-  <p>Your email has been successfully verified. You can now log in to your account.</p>
-
-  <a href="http://localhost:3000/login"
-     style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
-     Go to Login
-  </a>
-`;
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta http-equiv="refresh" content="3;url=http://localhost:5173/login" />
+              <style>
+                body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #0a0a0f; color: #f0f0f5; text-align: center; margin: 0; }
+                h1 { color: #00d68f; margin-bottom: 10px; }
+                p { color: #9898b0; margin-bottom: 20px; }
+                a { display: inline-block; padding: 10px 20px; background: #20B2AA; color: #fff; text-decoration: none; border-radius: 8px; font-weight: 500; }
+                a:hover { background: #1a9e97; }
+              </style>
+            </head>
+            <body>
+              <h1>Email Verified ✅</h1>
+              <p>Your email has been successfully verified. Redirecting to login...</p>      
+              <a href="http://localhost:5173/login">Go to Login Now</a>
+              <script>
+                setTimeout(function() { window.location.href = "http://localhost:5173/login"; }, 3000);
+              </script>
+            </body>
+            </html>`;
 
         return res.send(html);
 

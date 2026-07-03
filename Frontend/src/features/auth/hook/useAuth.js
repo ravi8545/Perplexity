@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe } from "../service/auth.api.js";
+import { register, login, getMe, resendVerification } from "../service/auth.api.js";
 import { setUser, setLoading, setError } from "../auth.slice.js";
 import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
@@ -10,11 +10,15 @@ export function useAuth() {
     async function handleRegister({ email, username, password }) {
         try {
             dispatch(setLoading(true));
+            dispatch(setError(null));
             const data = await register({ email, username, password });
-            dispatch(setUser(data.user));
+            // Don't set user - they need to verify email first
+            return { success: true, data };
 
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Registration failed. Please try again."));
+            const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+            dispatch(setError(errorMessage));
+            return { success: false, message: errorMessage };
         } finally {
             dispatch(setLoading(false));
         }
@@ -60,9 +64,21 @@ export function useAuth() {
             dispatch(setUser(data.user));
         } catch (error) {
             console.log('GetMe failed:', error.response?.status, error.response?.data);
-            dispatch(setError(error.response?.data?.message || "Failed to fetch user details."));
+            if (error.response?.status !== 401) {
+                dispatch(setError(error.response?.data?.message || "Failed to fetch user details."));
+            }
         } finally {
             dispatch(setLoading(false));
+        }
+    }
+
+    async function handleResendVerification({ email }) {
+        try {
+            const data = await resendVerification({ email });
+            return { success: true, message: data.message };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to resend verification email.";
+            return { success: false, message: errorMessage };
         }
     }
 
@@ -70,5 +86,6 @@ export function useAuth() {
         handleRegister,
         handleLogin,
         handleGetMe,
+        handleResendVerification,
     };
 }
