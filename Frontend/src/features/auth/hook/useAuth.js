@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe, resendVerification } from "../service/auth.api.js";
-import { setUser, setLoading, setError } from "../auth.slice.js";
+import { register, login, getMe, resendVerification, logout } from "../service/auth.api.js";
+import { setUser, setLoading, setError, logout as logoutAction } from "../auth.slice.js";
 import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
 export function useAuth() {
@@ -82,10 +82,24 @@ export function useAuth() {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await logout();
+            dispatch(logoutAction());
+            return { success: true };
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Even if API fails, clear local state
+            dispatch(logoutAction());
+            return { success: false, message: error.response?.data?.message || "Logout failed." };
+        }
+    }
+
     return {
         handleRegister,
         handleLogin,
         handleGetMe,
         handleResendVerification,
+        handleLogout,
     };
 }
