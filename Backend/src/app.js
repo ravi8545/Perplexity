@@ -9,9 +9,12 @@ const app = express();
 
 //middlewares
 app.use(cors({
-	origin: 'http://localhost:5173', // Update this to match your frontend URL
-	credentials: true, // Allow cookies to be sent
-	methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+    origin: [
+        "http://localhost:5173",
+        process.env.FRONTEND_URL,
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
 }));
 app.use(morgan('dev')); 
 app.use(express.json());

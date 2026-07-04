@@ -14,7 +14,7 @@ function buildVerificationEmailHtml(username, emailVerificationToken) {
       Click below to verify your email:
     </p>
 
-    <a href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
+<a href="${process.env.BACKEND_URL}/api/auth/verify-email?token=${emailVerificationToken}">"
        style="display:inline-block; padding:8px 16px; background:#4CAF50; color:#fff; text-decoration:none; border-radius:4px;">
        Verify Email
     </a>
@@ -93,7 +93,7 @@ export async function verifyEmail(req, res) {
             <!DOCTYPE html>
             <html>
             <head>
-              <meta http-equiv="refresh" content="3;url=http://localhost:5173/login" />
+              <meta http-equiv="refresh" content="3;url=${process.env.FRONTEND_URL}/login" />
               <style>
                 body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #0a0a0f; color: #f0f0f5; text-align: center; margin: 0; }
                 h1 { color: #00d68f; margin-bottom: 10px; }
@@ -105,9 +105,9 @@ export async function verifyEmail(req, res) {
             <body>
               <h1>Email Already Verified ✅</h1>
               <p>Your email has already been verified. Redirecting to login...</p>      
-              <a href="http://localhost:5173/login">Go to Login Now</a>
+              <a href="${process.env.FRONTEND_URL}/login">Go to Login Now</a>
               <script>
-                setTimeout(function() { window.location.href = "http://localhost:5173/login"; }, 3000);
+                setTimeout(function() { window.location.href = "${process.env.FRONTEND_URL}/login"; }, 3000);
               </script>
             </body>
             </html>`;
