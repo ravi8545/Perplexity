@@ -13,6 +13,7 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "@getbrevo/brevo": "^6.0.2",
     "@langchain/core": "^1.2.1",
     "@langchain/google-genai": "^2.1.26",
     "@langchain/mistralai": "^1.2.0",
@@ -29,6 +30,7 @@
     "mongoose": "^9.4.1",
     "morgan": "^1.10.1",
     "nodemailer": "^6.9.16",
+    "resend": "^6.17.1",
     "socket.io": "^4.8.3",
     "zod": "^4.4.3"
   }
