@@ -2,8 +2,8 @@ import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
         type: "OAuth2",
         user: process.env.GOOGLE_USER,
@@ -15,11 +15,11 @@ const transporter = nodemailer.createTransport({
 
 transporter
     .verify()
-    .then(() => {
-        console.log("Ready to send emails");
+    .then((success) => {
+        console.log("Verify Success:", success);
     })
     .catch((err) => {
-        console.error("Error setting up email transporter:", err);
+        console.error("Verify Error:", err);
     });
 
 export async function sendEmail({ to, subject, html, text }) {
