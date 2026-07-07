@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat.js'
 import { useAuth } from '../../auth/hook/useAuth.js'
 import { useNavigate } from 'react-router'
+import MarkdownRenderer from '../components/MarkdownRenderer.jsx'
 import DiscoverView from '../components/DiscoverView.jsx'
 import FinanceView from '../components/FinanceView.jsx'
 import HealthView from '../components/HealthView.jsx'
@@ -478,9 +479,14 @@ const Dashboards = () => {
             {/* Messages */}
             <div className="chat-view__messages">
               {chat.isLoading && chat.messages.length === 0 && (
-                <div className="chat-view__loading">
-                  <div className="spinner"></div>
-                  <span>Loading messages...</span>
+                <div className="chat-loading-center">
+                  <div className="chat-loading-pulse">
+                    <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
+                      <path d="M14 2L4 8v12l10 6 10-6V8L14 2z" stroke="currentColor" strokeWidth="1.6" fill="none" />
+                      <path d="M14 2v24M4 8l10 6 10-6M4 20l10-6 10 6" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
+                    </svg>
+                  </div>
+                  <span className="chat-loading-text">Loading messages...</span>
                 </div>
               )}
               {chat.messages.map((msg, idx) => (
@@ -499,7 +505,9 @@ const Dashboards = () => {
                   </div>
                   <div className="chat-msg__content">
                     <span className="chat-msg__role">{msg.role === 'user' ? 'You' : 'AI'}</span>
-                    <div className="chat-msg__text">{msg.content}</div>
+                    <div className="chat-msg__text">
+                      {msg.role === 'user' ? msg.content : <MarkdownRenderer content={msg.content} />}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1399,14 +1407,36 @@ const Dashboards = () => {
           gap: 24px;
         }
 
-        .chat-view__loading {
+        /* Centered loading animation */
+        .chat-loading-center {
+          flex: 1;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 10px;
-          padding: 40px 0;
+          gap: 16px;
+          min-height: 300px;
+        }
+
+        .chat-loading-pulse {
+          color: var(--color-accent);
+          animation: loadingPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes loadingPulse {
+          0%, 100% { opacity: 0.3; transform: scale(0.92); }
+          50% { opacity: 1; transform: scale(1.08); }
+        }
+
+        .chat-loading-text {
+          font-size: 0.82rem;
           color: var(--color-text-muted);
-          font-size: 0.88rem;
+          animation: loadingTextFade 2s ease-in-out infinite;
+        }
+
+        @keyframes loadingTextFade {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
         }
 
         /* Chat messages */

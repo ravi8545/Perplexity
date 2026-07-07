@@ -598,6 +598,31 @@ body {
   height: 18px;
 }
 
+/* ===== Scrollbar Hide Utility ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Markdown Prose (AI Messages) ===== */
+.markdown-prose {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: #d0d0dd;
+  word-break: break-word;
+}
+
+.markdown-prose > *:first-child {
+  margin-top: 0;
+}
+
+.markdown-prose > *:last-child {
+  margin-bottom: 0;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 480px) {
   .auth-card {
