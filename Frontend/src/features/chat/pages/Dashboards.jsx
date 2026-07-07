@@ -3,6 +3,11 @@ import { useSelector } from 'react-redux'
 import { useChat } from '../hooks/useChat.js'
 import { useAuth } from '../../auth/hook/useAuth.js'
 import { useNavigate } from 'react-router'
+import DiscoverView from '../components/DiscoverView.jsx'
+import FinanceView from '../components/FinanceView.jsx'
+import HealthView from '../components/HealthView.jsx'
+import AcademicView from '../components/AcademicView.jsx'
+import PatentsView from '../components/PatentsView.jsx'
 
 const Dashboards = () => {
   const chat = useChat()
@@ -12,6 +17,7 @@ const Dashboards = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [showProfile, setShowProfile] = useState(false)
+  const [currentView, setCurrentView] = useState('home')
   const messagesEndRef = useRef(null)
 
   // Load chats and initialize socket on mount
@@ -38,6 +44,7 @@ const Dashboards = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
         e.preventDefault()
         chat.handleNewChat()
+        setCurrentView('home')
       }
     }
     window.addEventListener('keydown', handleKeydown)
@@ -193,7 +200,14 @@ const Dashboards = () => {
       <aside className={`sidebar ${isSidebarOpen ? 'sidebar--open' : ''}`}>
         {/* Logo row */}
         <div className="sidebar-header">
-          <div className="sidebar-logo">
+          <div 
+            className="sidebar-logo"
+            onClick={() => {
+              chat.handleNewChat()
+              setCurrentView('home')
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             {/* Perplexity-style abstract logo */}
             <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
               <path d="M14 2L4 8v12l10 6 10-6V8L14 2z" stroke="currentColor" strokeWidth="1.6" fill="none" />
@@ -216,7 +230,10 @@ const Dashboards = () => {
 
         {/* New Thread button */}
         <div className="sidebar-new-wrapper">
-          <button className="sidebar-new-btn" onClick={() => chat.handleNewChat()}>
+          <button className="sidebar-new-btn" onClick={() => {
+            chat.handleNewChat()
+            setCurrentView('home')
+          }}>
             <span className="sidebar-new-btn__left">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
@@ -340,11 +357,32 @@ const Dashboards = () => {
           </div>
 
           <nav className="topbar__links">
-            {topNavLinks.map((link) => (
-              <a key={link} href="#" className="topbar__link">
-                {link}
-              </a>
-            ))}
+            {topNavLinks.map((link) => {
+              const viewKey = link.toLowerCase();
+              const isActive = currentView === viewKey;
+              return (
+                <button 
+                  key={link} 
+                  onClick={() => {
+                    chat.handleNewChat();
+                    setCurrentView(viewKey);
+                  }} 
+                  className={`topbar__link ${isActive ? 'topbar__link--active' : ''}`}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '4px 0',
+                    cursor: 'pointer',
+                    color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                    borderBottom: isActive ? '2px solid var(--color-accent)' : 'none',
+                    fontWeight: isActive ? '600' : '500',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {link}
+                </button>
+              );
+            })}
           </nav>
 
           <div className="topbar__right">
@@ -386,13 +424,49 @@ const Dashboards = () => {
           </div>
         </header>
 
+        {/* Mobile Category Links (Only visible on mobile/tablet) */}
+        <nav className="mobile-category-bar">
+          {topNavLinks.map((link) => {
+            const viewKey = link.toLowerCase();
+            const isActive = currentView === viewKey && !isInChat;
+            return (
+              <button 
+                key={link} 
+                onClick={() => {
+                  chat.handleNewChat();
+                  setCurrentView(viewKey);
+                }} 
+                className={`mobile-category-link ${isActive ? 'mobile-category-link--active' : ''}`}
+                style={{
+                  background: isActive ? 'var(--color-bg-card)' : 'none',
+                  border: isActive ? '1.5px solid var(--color-border)' : '1.5px solid transparent',
+                  borderRadius: '16px',
+                  fontFamily: 'var(--font-primary)',
+                  fontSize: '0.78rem',
+                  fontWeight: isActive ? '600' : '500',
+                  color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  padding: '5px 12px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {link}
+              </button>
+            );
+          })}
+        </nav>
+
         {/* ─── CONDITIONAL: Chat View or Hero View ─── */}
         {isInChat ? (
           /* ─── CHAT VIEW ─── */
           <div className="chat-view">
             {/* Chat header with title */}
             <div className="chat-view__header">
-              <button className="chat-view__back" onClick={() => chat.handleNewChat()} title="Back to home">
+              <button className="chat-view__back" onClick={() => {
+                chat.handleNewChat()
+                setCurrentView('home')
+              }} title="Back to home">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="19" y1="12" x2="5" y2="12" />
                   <polyline points="12 19 5 12 12 5" />
@@ -491,85 +565,97 @@ const Dashboards = () => {
             </div>
           </div>
         ) : (
-          /* ─── HOME / HERO VIEW ─── */
-          <div className="hero-section">
-            <h1 className="hero-title">perplexity</h1>
+          currentView === 'discover' ? (
+            <DiscoverView />
+          ) : currentView === 'finance' ? (
+            <FinanceView />
+          ) : currentView === 'health' ? (
+            <HealthView />
+          ) : currentView === 'academic' ? (
+            <AcademicView />
+          ) : currentView === 'patents' ? (
+            <PatentsView />
+          ) : (
+            /* ─── HOME / HERO VIEW ─── */
+            <div className="hero-section">
+              <h1 className="hero-title">perplexity</h1>
 
-            {/* Search box */}
-            <div className="search-box">
-              <div className="search-box__input-area">
-                <textarea
-                  className="search-box__textarea"
-                  placeholder="Ask anything..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  rows={2}
-                />
-              </div>
-
-              <div className="search-box__toolbar">
-                <div className="search-box__toolbar-left">
-                  <button className="search-box__action-btn" title="Attach">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                    </svg>
-                  </button>
-
-                  <button className="search-box__pill">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="11" cy="11" r="8" />
-                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    Search
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-
-                  <button className="search-box__pill search-box__pill--hide-mobile">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                      <line x1="8" y1="21" x2="16" y2="21" />
-                      <line x1="12" y1="17" x2="12" y2="21" />
-                    </svg>
-                    Computer
-                  </button>
+              {/* Search box */}
+              <div className="search-box">
+                <div className="search-box__input-area">
+                  <textarea
+                    className="search-box__textarea"
+                    placeholder="Ask anything..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    rows={2}
+                  />
                 </div>
 
-                <div className="search-box__toolbar-right">
-                  <button className="search-box__model-btn">
-                    Model
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
+                <div className="search-box__toolbar">
+                  <div className="search-box__toolbar-left">
+                    <button className="search-box__action-btn" title="Attach">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    </button>
 
-                  <button className="search-box__mic-btn" title="Voice input">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
-                      <path d="M19 10v2a7 7 0 01-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="23" />
-                      <line x1="8" y1="23" x2="16" y2="23" />
-                    </svg>
-                  </button>
+                    <button className="search-box__pill">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      Search
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
 
-                  <button
-                    className={`search-box__submit ${query.trim() ? 'search-box__submit--active' : ''}`}
-                    disabled={!query.trim() || chat.isSending}
-                    title="Submit"
-                    onClick={handleSubmit}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12" />
-                      <polyline points="12 5 19 12 12 19" />
-                    </svg>
-                  </button>
+                    <button className="search-box__pill search-box__pill--hide-mobile">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                      Computer
+                    </button>
+                  </div>
+
+                  <div className="search-box__toolbar-right">
+                    <button className="search-box__model-btn">
+                      Model
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+
+                    <button className="search-box__mic-btn" title="Voice input">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                        <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                        <line x1="8" y1="23" x2="16" y2="23" />
+                      </svg>
+                    </button>
+
+                    <button
+                      className={`search-box__submit ${query.trim() ? 'search-box__submit--active' : ''}`}
+                      disabled={!query.trim() || chat.isSending}
+                      title="Submit"
+                      onClick={handleSubmit}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )
         )}
       </main>
 
@@ -973,6 +1059,27 @@ const Dashboards = () => {
 
         @media (min-width: 900px) {
           .topbar__links { display: flex; }
+        }
+
+        /* Mobile Category Bar Styles */
+        .mobile-category-bar {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 16px;
+          border-bottom: 1px solid var(--color-border);
+          background: var(--color-bg-secondary);
+          overflow-x: auto;
+          scrollbar-width: none;
+          flex-shrink: 0;
+        }
+        .mobile-category-bar::-webkit-scrollbar {
+          display: none;
+        }
+        @media (min-width: 900px) {
+          .mobile-category-bar {
+            display: none;
+          }
         }
 
         .topbar__link {
