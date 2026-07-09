@@ -84,3 +84,4 @@ export const resendVerificationValidator = [
         .normalizeEmail(),
     validate,
 ]
+

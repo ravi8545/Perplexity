@@ -1,6 +1,7 @@
 import UserModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
+import redis from "../config/cache.js";
 
 
 
@@ -320,6 +321,12 @@ export async function resendVerificationEmail(req, res) {
 
 export async function logout(req, res) {
     try {
+        const token = req.cookies?.token;
+
+        if (token) {
+            await redis.set(token, "blacklisted", "EX", 60 * 60 * 24 * 7);
+        }
+
         res.clearCookie("token", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -331,8 +338,10 @@ export async function logout(req, res) {
             success: true,
             message: "Logged out successfully",
         });
+
     } catch (error) {
         console.error("Logout error:", error);
+
         return res.status(500).json({
             success: false,
             message: "Logout failed. Please try again.",
@@ -340,3 +349,7 @@ export async function logout(req, res) {
     }
 }
 
+
+export async function forgotPassword(req, res){
+    
+}

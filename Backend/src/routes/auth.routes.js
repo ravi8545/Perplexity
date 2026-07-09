@@ -26,4 +26,6 @@ authRouter.post("/resend-verification", resendVerificationValidator, resendVerif
 
 authRouter.post("/logout", authUser, logout);
 
+authRouter.post("/forgot-password", forgotPasswordV)
+
 export default authRouter;
