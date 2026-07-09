@@ -85,3 +85,30 @@ export const resendVerificationValidator = [
     validate,
 ]
 
+// ✅ Forgot Password Validator
+export const forgotPasswordValidator = [
+    body("email")
+        .trim()
+        .notEmpty().withMessage("Email is required")
+        .bail()
+        .isEmail().withMessage("Email must be valid")
+        .bail()
+        .normalizeEmail(),
+    validate,
+]
+
+// ✅ Reset Password Validator
+export const resetPasswordValidator = [
+    body("token")
+        .notEmpty().withMessage("Reset token is required"),
+
+    body("newPassword")
+        .notEmpty().withMessage("New password is required")
+        .bail()
+        .isString().withMessage("Password must be a string")
+        .bail()
+        .isLength({ min: 6, max: 128 })
+        .withMessage("Password must be between 6 and 128 characters"),
+
+    validate,
+]

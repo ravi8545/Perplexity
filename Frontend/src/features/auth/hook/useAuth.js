@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe, resendVerification, logout } from "../service/auth.api.js";
+import { register, login, getMe, resendVerification, logout, forgotPassword, resetPassword } from "../service/auth.api.js";
 import { setUser, setLoading, setError, logout as logoutAction } from "../auth.slice.js";
 import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
@@ -95,11 +95,33 @@ export function useAuth() {
         }
     }
 
+    async function handleForgotPassword({ email }) {
+        try {
+            const data = await forgotPassword({ email });
+            return { success: true, message: data.message };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to send reset email. Please try again.";
+            return { success: false, message: errorMessage };
+        }
+    }
+
+    async function handleResetPassword({ token, newPassword }) {
+        try {
+            const data = await resetPassword({ token, newPassword });
+            return { success: true, message: data.message };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
+            return { success: false, message: errorMessage };
+        }
+    }
+
     return {
         handleRegister,
         handleLogin,
         handleGetMe,
         handleResendVerification,
         handleLogout,
+        handleForgotPassword,
+        handleResetPassword,
     };
 }

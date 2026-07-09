@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { login, register, verifyEmail, getMe, resendVerificationEmail, logout } from "../controllers/auth.controllers.js";
-import { registerValidator, loginValidator, resendVerificationValidator } from "../validators/auth.validators.js";
+import { login, register, verifyEmail, getMe, resendVerificationEmail, logout, forgotPassword, resetPassword } from "../controllers/auth.controllers.js";
+import { registerValidator, loginValidator, resendVerificationValidator, forgotPasswordValidator, resetPasswordValidator } from "../validators/auth.validators.js";
 import { authUser } from "../middleware/auth.middleware.js";
 
 
@@ -26,6 +26,8 @@ authRouter.post("/resend-verification", resendVerificationValidator, resendVerif
 
 authRouter.post("/logout", authUser, logout);
 
-authRouter.post("/forgot-password", forgotPasswordV)
+authRouter.post("/forgot-password", forgotPasswordValidator, forgotPassword);
+
+authRouter.post("/reset-password", resetPasswordValidator, resetPassword);
 
 export default authRouter;

@@ -350,6 +350,114 @@ export async function logout(req, res) {
 }
 
 
-export async function forgotPassword(req, res){
-    
+function buildPasswordResetEmailHtml(username, resetToken) {
+    return `
+    <p>Hello <strong>${username}</strong>,</p>
+
+    <p>We received a request to reset your password on <strong>Perplexity</strong>.</p>
+
+    <p>Click below to reset your password (this link expires in 15 minutes):</p>
+
+    <a
+      href="${process.env.FRONTEND_URL}/reset-password?token=${resetToken}"
+      style="display:inline-block;padding:10px 20px;background:#20B2AA;color:#fff;text-decoration:none;border-radius:8px;font-weight:500;"
+    >
+      Reset Password
+    </a>
+
+    <p style="margin-top:16px;color:#888;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+    `;
+}
+
+export async function forgotPassword(req, res) {
+    try {
+        const { email } = req.body;
+        const normalizedEmail = email?.trim().toLowerCase();
+
+        // Always return success to prevent email enumeration
+        const genericMessage = "If an account with that email exists, a password reset link has been sent.";
+
+        const user = await UserModel.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            return res.status(200).json({
+                success: true,
+                message: genericMessage,
+            });
+        }
+
+        // Generate a short-lived reset token (15 minutes)
+        const resetToken = jwt.sign(
+            { email: user.email, purpose: "password-reset" },
+            process.env.JWT_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        await sendEmail({
+            to: user.email,
+            subject: "Perplexity - Reset Your Password",
+            html: buildPasswordResetEmailHtml(user.username, resetToken),
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: genericMessage,
+        });
+    } catch (error) {
+        console.error("Forgot password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to process password reset request. Please try again later.",
+            err: error.message,
+        });
+    }
+}
+
+export async function resetPassword(req, res) {
+    try {
+        const { token, newPassword } = req.body;
+
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
+        } catch (err) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired reset link. Please request a new one.",
+            });
+        }
+
+        // Ensure this token was issued for password reset
+        if (decoded.purpose !== "password-reset") {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid reset token.",
+            });
+        }
+
+        const user = await UserModel.findOne({ email: decoded.email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found.",
+            });
+        }
+
+        // Update password — the pre('save') hook will hash it
+        user.password = newPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully. You can now log in with your new password.",
+        });
+    } catch (error) {
+        console.error("Reset password error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to reset password. Please try again later.",
+            err: error.message,
+        });
+    }
 }
