@@ -1,12 +1,10 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai";
-
 import {
   HumanMessage,
   SystemMessage,
   AIMessage,
 } from "@langchain/core/messages";
-
 import { tool } from "@langchain/core/tools";
 import { createAgent } from "langchain";
 import * as z from "zod";
@@ -25,25 +23,58 @@ const mistralModel = new ChatMistralAI({
 
 const searchInternetTool = tool(searchInternet, {
   name: "SearchInternet",
-  description:
-    "Search the internet for relevant information to answer user queries.",
-  inputSchema: z.object({
-    query: z
-      .string()
-      .describe("The search query provided by the user."),
+  description: `
+Search the internet using Tavily.
+
+Use this tool whenever the user asks about:
+- latest news
+- current events
+- today's information
+- real-time information
+- recent updates
+- weather
+- sports
+- stock market
+- internet search
+The query field is REQUIRED.
+`,
+  schema: z.object({
+    query: z.string().describe("The search query."),
+    topic: z.enum(["general", "news"]).optional(),
+    timeRange: z
+      .enum(["day", "week", "month", "year"])
+      .optional(),
   }),
 });
-
 const agent = createAgent({
-  model: mistralModel,
+  model: geminiModel,
   tools: [searchInternetTool],
 });
 
 export async function generateResponse(messages) {
   const formattedMessages = [
-    new SystemMessage(
-      "You are a helpful AI assistant. Use the previous conversation whenever necessary."
-    ),
+    new SystemMessage(`
+You are a helpful AI assistant.
+
+You have access to the SearchInternet tool.
+
+Whenever the user asks about:
+- latest news
+- current events
+- today's date
+- today's time
+- weather
+- sports
+- stock prices
+- internet search
+- recent information
+
+ALWAYS use the SearchInternet tool first.
+
+Never answer these questions from memory.
+
+Use previous conversation whenever necessary.
+`),
 
     ...messages
       .map((msg) => {
