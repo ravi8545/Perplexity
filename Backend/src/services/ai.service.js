@@ -51,9 +51,8 @@ const agent = createAgent({
   tools: [searchInternetTool],
 });
 
-export async function generateResponse(messages) {
-  const formattedMessages = [
-    new SystemMessage(`
+export async function generateResponse(messages, pdfContext = "") {
+  let systemPromptText = `
 You are a helpful AI assistant.
 
 You have access to the SearchInternet tool.
@@ -74,7 +73,23 @@ ALWAYS use the SearchInternet tool first.
 Never answer these questions from memory.
 
 Use previous conversation whenever necessary.
-`),
+`;
+
+  // If PDF context is available, add it to the system prompt
+  if (pdfContext) {
+    systemPromptText += `
+
+IMPORTANT: The user has uploaded a PDF document. Below are the most relevant excerpts from that PDF.
+Use this context to answer the user's questions about the document. If the answer is found in the PDF context, prioritize it over internet search.
+
+--- PDF CONTEXT START ---
+${pdfContext}
+--- PDF CONTEXT END ---
+`;
+  }
+
+  const formattedMessages = [
+    new SystemMessage(systemPromptText),
 
     ...messages
       .map((msg) => {

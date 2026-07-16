@@ -9,6 +9,7 @@ const chatSlice = createSlice({
         messages: [],
         isLoading: false,
         isSending: false,
+        isPdfUploading: false,
         error: null
     },
     reducers: {
@@ -54,6 +55,10 @@ const chatSlice = createSlice({
             state.isSending = action.payload;
         },
 
+        setPdfUploading: (state, action) => {
+            state.isPdfUploading = action.payload;
+        },
+
         setError: (state, action) => {
             state.error = action.payload;
         }
@@ -70,6 +75,7 @@ export const {
     clearMessages,
     setLoading,
     setSending,
+    setPdfUploading,
     setError
 } = chatSlice.actions;
 

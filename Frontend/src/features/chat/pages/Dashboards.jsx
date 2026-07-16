@@ -19,7 +19,9 @@ const Dashboards = () => {
   const [query, setQuery] = useState('')
   const [showProfile, setShowProfile] = useState(false)
   const [currentView, setCurrentView] = useState('home')
+  const [pdfFile, setPdfFile] = useState(null)
   const messagesEndRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   // Load chats and initialize socket on mount
   useEffect(() => {
@@ -61,11 +63,29 @@ const Dashboards = () => {
     const trimmed = query.trim()
     if (!trimmed || chat.isSending) return
 
+    const attachedPdf = pdfFile
     setQuery('')
+    setPdfFile(null)
+    // Reset file input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
+
     await chat.handleSendMessage({
       message: trimmed,
       chatId: chat.currentChatId,
+      pdfFile: attachedPdf,
     })
+  }
+
+  const handlePdfSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (file && file.type === 'application/pdf') {
+      setPdfFile(file)
+    }
+  }
+
+  const removePdf = () => {
+    setPdfFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleKeyDown = (e) => {
@@ -137,6 +157,14 @@ const Dashboards = () => {
 
   return (
     <div className="dashboard-root">
+      {/* Hidden PDF file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept=".pdf"
+        style={{ display: 'none' }}
+        onChange={handlePdfSelect}
+      />
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
@@ -505,6 +533,15 @@ const Dashboards = () => {
                   </div>
                   <div className="chat-msg__content">
                     <span className="chat-msg__role">{msg.role === 'user' ? 'You' : 'AI'}</span>
+                    {msg.pdfName && (
+                      <div className="chat-msg__pdf-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <span>{msg.pdfName}</span>
+                      </div>
+                    )}
                     <div className="chat-msg__text">
                       {msg.role === 'user' ? msg.content : <MarkdownRenderer content={msg.content} />}
                     </div>
@@ -520,6 +557,12 @@ const Dashboards = () => {
                   </div>
                   <div className="chat-msg__content">
                     <span className="chat-msg__role">AI</span>
+                    {chat.isPdfUploading && (
+                      <div className="chat-msg__pdf-processing">
+                        <div className="pdf-processing-spinner"></div>
+                        <span>Processing PDF & creating embeddings...</span>
+                      </div>
+                    )}
                     <div className="chat-msg__typing">
                       <span className="typing-dot"></span>
                       <span className="typing-dot"></span>
@@ -534,6 +577,22 @@ const Dashboards = () => {
             {/* Chat input */}
             <div className="chat-view__input-area">
               <div className="search-box">
+                {/* PDF chip preview */}
+                {pdfFile && (
+                  <div className="search-box__pdf-chip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    <span className="search-box__pdf-chip-name">{pdfFile.name}</span>
+                    <button className="search-box__pdf-chip-remove" onClick={removePdf} title="Remove PDF">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="search-box__input-area">
                   <textarea
                     className="search-box__textarea"
@@ -547,7 +606,7 @@ const Dashboards = () => {
 
                 <div className="search-box__toolbar">
                   <div className="search-box__toolbar-left">
-                    <button className="search-box__action-btn" title="Attach">
+                    <button className="search-box__action-btn" title="Attach PDF" onClick={() => fileInputRef.current?.click()}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
@@ -590,6 +649,22 @@ const Dashboards = () => {
 
               {/* Search box */}
               <div className="search-box">
+                {/* PDF chip preview */}
+                {pdfFile && (
+                  <div className="search-box__pdf-chip">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    <span className="search-box__pdf-chip-name">{pdfFile.name}</span>
+                    <button className="search-box__pdf-chip-remove" onClick={removePdf} title="Remove PDF">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
                 <div className="search-box__input-area">
                   <textarea
                     className="search-box__textarea"
@@ -603,7 +678,7 @@ const Dashboards = () => {
 
                 <div className="search-box__toolbar">
                   <div className="search-box__toolbar-left">
-                    <button className="search-box__action-btn" title="Attach">
+                    <button className="search-box__action-btn" title="Attach PDF" onClick={() => fileInputRef.current?.click()}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19" />
                         <line x1="5" y1="12" x2="19" y2="12" />
@@ -1660,6 +1735,104 @@ const Dashboards = () => {
         .profile-modal__logout:hover {
           background: var(--color-error-bg);
           border-color: var(--color-error);
+        }
+
+        /* ===== PDF CHIP (search box) ===== */
+        .search-box__pdf-chip {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          margin: 8px 12px 0;
+          background: var(--color-accent-light);
+          border: 1px solid rgba(32, 178, 170, 0.3);
+          border-radius: var(--radius-sm);
+          color: var(--color-accent);
+          font-size: 0.82rem;
+          font-weight: 500;
+          animation: pdfChipIn 0.25s ease-out;
+        }
+
+        @keyframes pdfChipIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-box__pdf-chip-name {
+          max-width: 200px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .search-box__pdf-chip-remove {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
+          color: var(--color-text-secondary);
+          cursor: pointer;
+          padding: 2px;
+          border-radius: 4px;
+          transition: all 0.15s;
+        }
+
+        .search-box__pdf-chip-remove:hover {
+          background: rgba(255,255,255,0.1);
+          color: var(--color-error);
+        }
+
+        /* ===== PDF Badge (in messages) ===== */
+        .chat-msg__pdf-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          background: var(--color-accent-light);
+          border: 1px solid rgba(32, 178, 170, 0.25);
+          border-radius: 6px;
+          color: var(--color-accent);
+          font-size: 0.78rem;
+          font-weight: 500;
+          margin-bottom: 6px;
+        }
+
+        .chat-msg__pdf-badge span {
+          max-width: 180px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* ===== PDF Processing Indicator ===== */
+        .chat-msg__pdf-processing {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 14px;
+          background: var(--color-info-bg);
+          border: 1px solid var(--color-info-border);
+          border-radius: var(--radius-sm);
+          color: var(--color-info);
+          font-size: 0.82rem;
+          font-weight: 500;
+          margin-bottom: 8px;
+          animation: pdfProcessPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pdfProcessPulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 1; }
+        }
+
+        .pdf-processing-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(0, 206, 209, 0.3);
+          border-top-color: var(--color-info);
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
         }
       `}</style>
     </div>

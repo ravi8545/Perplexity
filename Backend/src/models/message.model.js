@@ -19,6 +19,16 @@ const messageSchema = new mongoose.Schema(
       enum: ["user", "ai"],
       required: true,
     },
+
+    pdfUrl: {
+      type: String,
+      default: null,
+    },
+
+    pdfName: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

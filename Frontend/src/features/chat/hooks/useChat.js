@@ -11,13 +11,14 @@ import {
     clearMessages,
     setLoading,
     setSending,
+    setPdfUploading,
     setError
 } from "../chat.slice";
 
 
 export function useChat() {
     const dispatch = useDispatch();
-    const { chats, currentChatId, messages, isLoading, isSending } = useSelector((state) => state.chat);
+    const { chats, currentChatId, messages, isLoading, isSending, isPdfUploading } = useSelector((state) => state.chat);
 
     async function handleLoadChats() {
         try {
@@ -32,15 +33,24 @@ export function useChat() {
         }
     }
 
-    async function handleSendMessage({ message, chatId }) {
+    async function handleSendMessage({ message, chatId, pdfFile }) {
         try {
             dispatch(setSending(true));
             dispatch(setError(null));
 
-            // Optimistically add user message to UI
-            dispatch(addMessage({ content: message, role: "user", _id: "temp_" + Date.now() }));
+            if (pdfFile) {
+                dispatch(setPdfUploading(true));
+            }
 
-            const data = await sendMessage({ message, chatId });
+            // Optimistically add user message to UI
+            dispatch(addMessage({
+                content: message,
+                role: "user",
+                _id: "temp_" + Date.now(),
+                pdfName: pdfFile ? pdfFile.name : null,
+            }));
+
+            const data = await sendMessage({ message, chatId, pdfFile });
             const { chat, aiMessage, title } = data;
 
             if (!chatId && chat) {
@@ -59,6 +69,7 @@ export function useChat() {
             return { success: false };
         } finally {
             dispatch(setSending(false));
+            dispatch(setPdfUploading(false));
         }
     }
 
@@ -123,6 +134,7 @@ export function useChat() {
         messages,
         isLoading,
         isSending,
+        isPdfUploading,
         // Actions
         initializeSocketConnection,
         handleLoadChats,
