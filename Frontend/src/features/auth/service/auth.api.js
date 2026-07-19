@@ -43,3 +43,8 @@ export async function resetPassword({ token, newPassword }) {
     const response = await api.post("/api/auth/reset-password", { token, newPassword });
     return response.data;
 }
+
+export async function googleLogin({ idToken }) {
+    const response = await api.post("/api/auth/google", { idToken });
+    return response.data;
+}

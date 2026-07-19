@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe, resendVerification, logout, forgotPassword, resetPassword } from "../service/auth.api.js";
+import { register, login, getMe, resendVerification, logout, forgotPassword, resetPassword, googleLogin } from "../service/auth.api.js";
 import { setUser, setLoading, setError, logout as logoutAction } from "../auth.slice.js";
 import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
@@ -115,6 +115,90 @@ export function useAuth() {
         }
     }
 
+    async function handleGoogleLogin() {
+        return new Promise((resolve) => {
+            try {
+                dispatch(setLoading(true));
+                dispatch(setError(null));
+
+                const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+                if (!window.google) {
+                    dispatch(setError("Google Sign-In is not loaded yet. Please try again."));
+                    dispatch(setLoading(false));
+                    resolve({ success: false });
+                    return;
+                }
+
+                window.google.accounts.id.initialize({
+                    client_id: clientId,
+                    callback: async (response) => {
+                        try {
+                            const data = await googleLogin({ idToken: response.credential });
+
+                            const userId = data.user?._id || data.user?.id;
+                            if (!data.user || !userId) {
+                                dispatch(setError("Invalid login response. User not found."));
+                                dispatch(setLoading(false));
+                                resolve({ success: false });
+                                return;
+                            }
+
+                            dispatch(setUser({
+                                ...data.user,
+                                _id: data.user._id ?? data.user.id,
+                            }));
+
+                            initializeSocketConnection();
+                            dispatch(setLoading(false));
+                            resolve({ success: true });
+                        } catch (error) {
+                            const errorMessage = error.response?.data?.message || "Google login failed. Please try again.";
+                            dispatch(setError(errorMessage));
+                            dispatch(setLoading(false));
+                            resolve({ success: false, message: errorMessage });
+                        }
+                    },
+                });
+
+                window.google.accounts.id.prompt((notification) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        // One Tap not available, fall back to popup
+                        window.google.accounts.oauth2.initCodeClient;
+                        // Use the button-triggered popup instead
+                        const buttonDiv = document.createElement('div');
+                        buttonDiv.style.display = 'none';
+                        document.body.appendChild(buttonDiv);
+
+                        window.google.accounts.id.renderButton(buttonDiv, {
+                            type: 'icon',
+                            size: 'large',
+                        });
+
+                        const googleBtn = buttonDiv.querySelector('[role="button"]');
+                        if (googleBtn) {
+                            googleBtn.click();
+                        }
+
+                        // Cleanup after a delay
+                        setTimeout(() => {
+                            if (buttonDiv.parentNode) {
+                                buttonDiv.parentNode.removeChild(buttonDiv);
+                            }
+                        }, 60000);
+
+                        dispatch(setLoading(false));
+                    }
+                });
+            } catch (error) {
+                console.error('Google Login Error:', error);
+                dispatch(setError("Google login failed. Please try again."));
+                dispatch(setLoading(false));
+                resolve({ success: false });
+            }
+        });
+    }
+
     return {
         handleRegister,
         handleLogin,
@@ -123,5 +207,6 @@ export function useAuth() {
         handleLogout,
         handleForgotPassword,
         handleResetPassword,
+        handleGoogleLogin,
     };
 }

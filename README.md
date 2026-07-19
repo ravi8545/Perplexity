@@ -7,6 +7,8 @@
 ![AI Models](https://img.shields.io/badge/AI-Gemini%20%7C%20Mistral-blueviolet.svg)
 ![Pinecone](https://img.shields.io/badge/Pinecone-Vector%20DB-purple.svg)
 ![RAG](https://img.shields.io/badge/RAG-PDF%20Support-orange.svg)
+![Redis](https://img.shields.io/badge/Redis-Token%20Blacklist-red.svg)
+![Google](https://img.shields.io/badge/Google-Sign%20In-4285F4.svg)
 
 An intelligent, AI-driven search and conversational platform built to mimic the core functionalities of Perplexity AI. The application leverages large language models (LLMs) to synthesize information from the web, providing accurate, real-time answers along with conversational abilities.
 
@@ -21,6 +23,8 @@ An intelligent, AI-driven search and conversational platform built to mimic the 
 - **📄 PDF RAG (Retrieval-Augmented Generation):** Upload a PDF in the chat, and the AI will read, understand, and answer your questions based on the document's content. PDFs are stored on ImageKit, chunked, embedded via Mistral, and indexed in Pinecone for lightning-fast semantic search.
 - **💬 Real-Time Communication:** Instant messaging and typing indicators using `Socket.io` for a seamless conversational experience.
 - **🔐 Secure Authentication:** Robust user authentication built with JWT (JSON Web Tokens) and bcrypt for password hashing.
+- **🔑 Sign in with Google:** One-click Google OAuth login using Google Identity Services. New users are auto-registered; returning users are logged into their existing account seamlessly.
+- **🛡️ Token Blacklisting:** Secure logout with Redis-based JWT token blacklisting. Revoked tokens are immediately invalidated, preventing unauthorized reuse.
 - **🗂 Chat History Management:** Save and retrieve previous chat sessions, structured elegantly in a MongoDB database.
 - **⚡ Fast & Responsive UI:** Modern and sleek user interface built with React 19, Tailwind CSS v4, and optimized by Vite.
 - **🧠 State Management:** Predictable state management using Redux Toolkit.
@@ -43,7 +47,8 @@ An intelligent, AI-driven search and conversational platform built to mimic the 
 - **Database:** MongoDB & Mongoose
 - **Vector Database:** Pinecone (for PDF RAG embeddings)
 - **File Storage:** ImageKit (for PDF uploads)
-- **Authentication:** JWT, bcryptjs
+- **Authentication:** JWT, bcryptjs, Google Auth Library (Google Sign-In)
+- **Token Blacklisting:** Redis (ioredis) — revokes JWTs on logout
 - **AI & LLM Orchestration:** Langchain, Google GenAI (@langchain/google-genai), Mistral AI (@langchain/mistralai)
 - **PDF Processing:** pdf-parse, @langchain/textsplitters, Mistral Embeddings
 - **Search API:** Tavily Core
@@ -98,11 +103,19 @@ IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key_here
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key_here
 IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint_here
 
-# (Optional) Email Services
+# Google OAuth (Sign in with Google + Email Services)
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 GOOGLE_REFRESH_TOKEN=your_google_refresh_token_here
 GOOGLE_USER=your_google_user_email_here
+
+# Token Blacklisting - Redis
+REDIS_HOST=your_redis_host_here
+REDIS_PORT=your_redis_port_here
+REDIS_PASSWORD=your_redis_password_here
+
+BACKEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:5173
 ```
 
 > **Note:** For the PDF RAG feature, you also need to create a Pinecone index named `rag` with **1024 dimensions** and **cosine** metric.
@@ -122,6 +135,7 @@ npm install
 Create a `.env` file in the `Frontend` directory:
 ```env
 VITE_API_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
 ```
 
 Start the frontend development server:
@@ -180,7 +194,13 @@ Perplexity/
 ### Authentication
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Authenticate user and issue JWT
-- `POST /api/auth/logout` - Logout user
+- `POST /api/auth/google` - Sign in with Google (verify ID token, create/login user)
+- `POST /api/auth/logout` - Logout user (blacklists JWT in Redis)
+- `GET /api/auth/get-me` - Get current authenticated user
+- `GET /api/auth/verify-email` - Verify email via token link
+- `POST /api/auth/resend-verification` - Resend email verification
+- `POST /api/auth/forgot-password` - Send password reset email
+- `POST /api/auth/reset-password` - Reset password with token
 
 ### Chat (Protected)
 - `GET /api/chats` - Retrieve all user chat sessions
@@ -198,6 +218,22 @@ Perplexity/
 6. On subsequent messages, the user's query is embedded and searched against Pinecone
 7. Top-3 relevant PDF chunks are injected into the AI system prompt as context
 8. AI responds with answers grounded in the PDF content
+
+### Token Blacklisting Flow
+1. User calls `POST /api/auth/logout`
+2. The current JWT is stored in **Redis** with a TTL matching the token's remaining lifetime (7 days max)
+3. On every authenticated request, the middleware checks Redis — if the token is blacklisted, access is denied
+4. This ensures that even valid, unexpired tokens are immediately revoked after logout
+
+### Google Sign-In Flow
+1. User clicks "Sign in with Google" on the Login or Register page
+2. Google Identity Services (GSI) popup opens for account selection
+3. Google returns an **ID token** (JWT signed by Google)
+4. Frontend sends the ID token to `POST /api/auth/google`
+5. Backend verifies the token using `google-auth-library`
+6. If no user exists with that email → a new account is created (auto-verified, no password needed)
+7. If a user already exists → they are logged in (Google account is linked if not already)
+8. A JWT cookie is set and the user is redirected to the dashboard
 
 ---
 

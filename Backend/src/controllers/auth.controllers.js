@@ -2,7 +2,9 @@ import UserModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 import redis from "../config/cache.js";
+import { OAuth2Client } from "google-auth-library";
 
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 function buildVerificationEmailHtml(username, emailVerificationToken) {
@@ -458,6 +460,116 @@ export async function resetPassword(req, res) {
             success: false,
             message: "Failed to reset password. Please try again later.",
             err: error.message,
+        });
+    }
+}
+
+export async function googleLogin(req, res) {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Google ID token is required",
+            });
+        }
+
+        // Verify the Google ID token
+        let ticket;
+        try {
+            ticket = await googleClient.verifyIdToken({
+                idToken,
+                audience: process.env.GOOGLE_CLIENT_ID,
+            });
+        } catch (err) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid Google token",
+            });
+        }
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name, picture } = payload;
+
+        // Try to find user by googleId first, then by email
+        let user = await UserModel.findOne({
+            $or: [{ googleId }, { email: email.toLowerCase() }],
+        });
+
+        if (user) {
+            // If user exists but doesn't have googleId linked, link it now
+            if (!user.googleId) {
+                user.googleId = googleId;
+                if (picture && !user.avatar) {
+                    user.avatar = picture;
+                }
+                // Auto-verify if not already verified
+                if (!user.verified) {
+                    user.verified = true;
+                }
+                await user.save();
+            }
+        } else {
+            // Create new user — generate a unique username from Google name
+            let baseUsername = name
+                ? name.replace(/\s+/g, "").toLowerCase()
+                : email.split("@")[0];
+            let username = baseUsername;
+            let counter = 1;
+
+            // Ensure username is unique
+            while (await UserModel.findOne({ username })) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+            }
+
+            user = await UserModel.create({
+                username,
+                email: email.toLowerCase(),
+                googleId,
+                avatar: picture || null,
+                verified: true, // Google-verified users don't need email verification
+            });
+        }
+
+        // Generate JWT (same pattern as normal login)
+        const token = jwt.sign(
+            {
+                id: user._id,
+                username: user.username,
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "7d",
+            }
+        );
+
+        // Set cookie (same pattern as normal login)
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite:
+                process.env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Google login successful",
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar,
+            },
+        });
+    } catch (error) {
+        console.error("Google Login Error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Google login failed. Please try again.",
         });
     }
 }
