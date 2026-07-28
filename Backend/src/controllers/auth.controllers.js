@@ -1,4 +1,6 @@
 import UserModel from "../models/user.model.js";
+import ChatModel from "../models/chat.model.js";
+import messageModel from "../models/message.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 import redis from "../config/cache.js";
@@ -570,6 +572,52 @@ export async function googleLogin(req, res) {
         return res.status(500).json({
             success: false,
             message: "Google login failed. Please try again.",
+        });
+    }
+}
+
+export async function deleteAccount(req, res) {
+    try {
+        const userId = req.user.id;
+        const token = req.cookies?.token;
+
+        // Get all chat IDs for this user
+        const userChats = await ChatModel.find({ user: userId }).select("_id");
+        const chatIds = userChats.map(chat => chat._id);
+
+        // Delete all messages belonging to user's chats
+        if (chatIds.length > 0) {
+            await messageModel.deleteMany({ chat: { $in: chatIds } });
+        }
+
+        // Delete all chats
+        await ChatModel.deleteMany({ user: userId });
+
+        // Delete the user
+        await UserModel.deleteOne({ _id: userId });
+
+        // Blacklist the token (same as logout)
+        if (token) {
+            await redis.set(token, "blacklisted", "EX", 60 * 60 * 24 * 7);
+        }
+
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            path: "/",
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Account deleted successfully",
+        });
+
+    } catch (error) {
+        console.error("Delete account error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete account",
         });
     }
 }

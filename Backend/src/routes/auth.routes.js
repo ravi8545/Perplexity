@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { login, register, verifyEmail, getMe, resendVerificationEmail, logout, forgotPassword, resetPassword, googleLogin } from "../controllers/auth.controllers.js";
+import { login, register, verifyEmail, getMe, resendVerificationEmail, logout, forgotPassword, resetPassword, googleLogin, deleteAccount } from "../controllers/auth.controllers.js";
 import { registerValidator, loginValidator, resendVerificationValidator, forgotPasswordValidator, resetPasswordValidator } from "../validators/auth.validators.js";
 import { authUser } from "../middleware/auth.middleware.js";
 
@@ -31,5 +31,7 @@ authRouter.post("/forgot-password", forgotPasswordValidator, forgotPassword);
 authRouter.post("/reset-password", resetPasswordValidator, resetPassword);
 
 authRouter.post("/google", googleLogin);
+
+authRouter.delete("/delete-account", authUser, deleteAccount);
 
 export default authRouter;
