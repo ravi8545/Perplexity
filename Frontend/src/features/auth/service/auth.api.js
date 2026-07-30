@@ -48,3 +48,8 @@ export async function googleLogin({ idToken }) {
     const response = await api.post("/api/auth/google", { idToken });
     return response.data;
 }
+
+export async function deleteAccount() {
+    const response = await api.delete("/api/auth/delete-account");
+    return response.data;
+}

@@ -1,5 +1,5 @@
 import { useDispatch } from "react-redux";
-import { register, login, getMe, resendVerification, logout, forgotPassword, resetPassword, googleLogin } from "../service/auth.api.js";
+import { register, login, getMe, resendVerification, logout, forgotPassword, resetPassword, googleLogin, deleteAccount } from "../service/auth.api.js";
 import { setUser, setLoading, setError, logout as logoutAction } from "../auth.slice.js";
 import { initializeSocketConnection } from "../../chat/service/chat.socket.js";
 
@@ -199,6 +199,21 @@ export function useAuth() {
         });
     }
 
+    async function handleDeleteAccount() {
+        try {
+            dispatch(setLoading(true));
+            await deleteAccount();
+            dispatch(logoutAction());
+            return { success: true, message: "Account deleted successfully" };
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to delete account. Please try again.";
+            dispatch(setError(errorMessage));
+            return { success: false, message: errorMessage };
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+
     return {
         handleRegister,
         handleLogin,
@@ -208,5 +223,6 @@ export function useAuth() {
         handleForgotPassword,
         handleResetPassword,
         handleGoogleLogin,
+        handleDeleteAccount,
     };
 }

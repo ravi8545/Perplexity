@@ -12,7 +12,7 @@ import PatentsView from '../components/PatentsView.jsx'
 
 const Dashboards = () => {
   const chat = useChat()
-  const { handleLogout } = useAuth()
+  const { handleLogout, handleDeleteAccount } = useAuth()
   const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -20,6 +20,8 @@ const Dashboards = () => {
   const [showProfile, setShowProfile] = useState(false)
   const [currentView, setCurrentView] = useState('home')
   const [pdfFile, setPdfFile] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
 
@@ -100,6 +102,17 @@ const Dashboards = () => {
     navigate('/login', { replace: true })
   }
 
+  const onDeleteAccount = async () => {
+    setIsDeleting(true)
+    const result = await handleDeleteAccount()
+    setIsDeleting(false)
+    if (result.success) {
+      setShowDeleteConfirm(false)
+      setShowProfile(false)
+      navigate('/login', { replace: true })
+    }
+  }
+
   const navItems = [
     {
       label: 'Computer',
@@ -175,11 +188,11 @@ const Dashboards = () => {
 
       {/* Profile modal overlay */}
       {showProfile && (
-        <div className="profile-overlay" onClick={() => setShowProfile(false)}>
+        <div className="profile-overlay" onClick={() => { setShowProfile(false); setShowDeleteConfirm(false); }}>
           <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal__header">
               <h2 className="profile-modal__title">Profile</h2>
-              <button className="profile-modal__close" onClick={() => setShowProfile(false)}>
+              <button className="profile-modal__close" onClick={() => { setShowProfile(false); setShowDeleteConfirm(false); }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
@@ -220,6 +233,61 @@ const Dashboards = () => {
                 </svg>
                 Logout
               </button>
+
+              {/* Delete Account Section */}
+              <div className="profile-modal__danger-zone">
+                <div className="profile-modal__danger-divider">
+                  <span className="profile-modal__danger-label">Danger Zone</span>
+                </div>
+                {!showDeleteConfirm ? (
+                  <button
+                    className="profile-modal__delete-btn"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                    Delete Account
+                  </button>
+                ) : (
+                  <div className="profile-modal__delete-confirm">
+                    <div className="profile-modal__delete-warning">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                      </svg>
+                      <span>This will permanently delete your account, all chats, and messages. This action cannot be undone.</span>
+                    </div>
+                    <div className="profile-modal__delete-actions">
+                      <button
+                        className="profile-modal__delete-cancel"
+                        onClick={() => setShowDeleteConfirm(false)}
+                        disabled={isDeleting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="profile-modal__delete-confirm-btn"
+                        onClick={onDeleteAccount}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <>
+                            <span className="profile-modal__delete-spinner"></span>
+                            Deleting...
+                          </>
+                        ) : (
+                          'Yes, Delete My Account'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1735,6 +1803,154 @@ const Dashboards = () => {
         .profile-modal__logout:hover {
           background: var(--color-error-bg);
           border-color: var(--color-error);
+        }
+
+        /* ===== DELETE ACCOUNT ===== */
+        .profile-modal__danger-zone {
+          width: 100%;
+          margin-top: 4px;
+        }
+
+        .profile-modal__danger-divider {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .profile-modal__danger-divider::before,
+        .profile-modal__danger-divider::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: var(--color-error-border);
+        }
+
+        .profile-modal__danger-label {
+          font-size: 0.7rem;
+          font-weight: 600;
+          color: var(--color-error);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          white-space: nowrap;
+          opacity: 0.8;
+        }
+
+        .profile-modal__delete-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          padding: 11px 0;
+          background: transparent;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          color: var(--color-text-secondary);
+          font-family: var(--font-primary);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.25s;
+        }
+
+        .profile-modal__delete-btn:hover {
+          background: var(--color-error-bg);
+          border-color: var(--color-error);
+          color: var(--color-error);
+        }
+
+        .profile-modal__delete-confirm {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          animation: modalSlideUp 0.25s ease;
+        }
+
+        .profile-modal__delete-warning {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          background: var(--color-error-bg);
+          border: 1px solid var(--color-error-border);
+          border-radius: var(--radius-sm);
+          color: var(--color-error);
+          font-size: 0.82rem;
+          line-height: 1.5;
+        }
+
+        .profile-modal__delete-warning svg {
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+
+        .profile-modal__delete-actions {
+          display: flex;
+          gap: 10px;
+        }
+
+        .profile-modal__delete-cancel {
+          flex: 1;
+          padding: 10px 0;
+          background: var(--color-bg-primary);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          color: var(--color-text-secondary);
+          font-family: var(--font-primary);
+          font-size: 0.85rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .profile-modal__delete-cancel:hover {
+          background: var(--color-bg-card-hover);
+          color: var(--color-text-primary);
+          border-color: var(--color-text-muted);
+        }
+
+        .profile-modal__delete-cancel:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .profile-modal__delete-confirm-btn {
+          flex: 1.5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 0;
+          background: var(--color-error);
+          border: 1px solid var(--color-error);
+          border-radius: var(--radius-md);
+          color: #fff;
+          font-family: var(--font-primary);
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .profile-modal__delete-confirm-btn:hover {
+          background: #e6435a;
+          border-color: #e6435a;
+          box-shadow: 0 0 20px rgba(255, 77, 106, 0.3);
+        }
+
+        .profile-modal__delete-confirm-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .profile-modal__delete-spinner {
+          width: 14px;
+          height: 14px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
         }
 
         /* ===== PDF CHIP (search box) ===== */
