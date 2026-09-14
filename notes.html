@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perplexity Clone - Interview Notes & Q&A</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #151c2c;
+      --bg-card-hover: #1e293b;
+      --accent-primary: #6366f1;
+      --accent-secondary: #a855f7;
+      --accent-cyan: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #2e384d;
+      --code-bg: #0f172a;
+      --badge-green: rgba(16, 185, 129, 0.15);
+      --badge-green-text: #34d399;
+      --badge-purple: rgba(168, 85, 247, 0.15);
+      --badge-purple-text: #c084fc;
+      --badge-blue: rgba(99, 102, 241, 0.15);
+      --badge-blue-text: #818cf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Header Styling */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding: 2.5rem 1.5rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Search & Stats Bar */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.85rem 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Tabs Styling */
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: var(--bg-card);
+      padding: 0.35rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+      padding: 0.65rem 1.25rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-primary);
+      color: #fff;
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Questions Grid/List */
+    .qa-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .qa-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem 1.75rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .qa-card:hover {
+      border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .qa-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .q-number {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 8px;
+      white-space: nowrap;
+      margin-top: 0.15rem;
+    }
+
+    .q-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      flex: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-basic { background: var(--badge-green); color: var(--badge-green-text); }
+    .badge-adv { background: var(--badge-purple); color: var(--badge-purple-text); }
+
+    .qa-body {
+      color: #cbd5e1;
+      font-size: 0.98rem;
+    }
+
+    .intent-box {
+      background: rgba(99, 102, 241, 0.08);
+      border-left: 3px solid var(--accent-primary);
+      padding: 0.75rem 1rem;
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #a5b4fc;
+    }
+
+    .answer-box {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .answer-box p {
+      margin-bottom: 0.75rem;
+    }
+
+    .answer-box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .answer-box ul, .answer-box ol {
+      margin-left: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .answer-box li {
+      margin-bottom: 0.35rem;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      background: var(--code-bg);
+      color: #38bdf8;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #e2e8f0;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .controls {
+        flex-direction: column;
+      }
+      .tabs {
+        width: 100%;
+      }
+      .tab-btn {
+        flex: 1;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <header class="header">
+      <h1>🚀 Perplexity Clone - Interview Prep Notes</h1>
+      <p>Aapke project ke liye tayar kiye gaye 20 Basic aur 15 Advanced Technical Questions & Answers</p>
+    </header>
+
+    <!-- Controls Bar -->
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 Questions search karein (e.g. CORS, useState, LangChain)..." onkeyup="filterQuestions()">
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('basic')">🟢 Basic (20 Q&A)</button>
+        <button class="tab-btn" onclick="switchTab('advanced')">⚡ Advanced (15 Q&A)</button>
+      </div>
+    </div>
+
+    <!-- TAB 1: BASIC QUESTIONS (20 Q&A) -->
+    <div id="basic" class="tab-content active qa-list">
+
+      <!-- Q1 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q1</span>
+          <div class="q-title">Apne project ke bare me bataiye (Project Overview & Elevator Pitch)</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Mera project ek <strong>AI-Powered Search & PDF Chat Application</strong> hai, jo Perplexity AI se inspired hai.</p>
+            <p>Isme 3 main key features hain:</p>
+            <ul>
+              <li><strong>Real-time Web Search:</strong> Jab user koi latest news ya current affair ka sawaal puchta hai, toh app internet se fresh data search karke accurate answer deti hai.</li>
+              <li><strong>PDF Chat (RAG):</strong> User chat me PDF document upload karke us document ke bare me sawaal puch sakta hai, aur AI sirf us PDF ke facts ke basis par jawab deti hai.</li>
+              <li><strong>Secure Authentication:</strong> Isme Email/Password aur 'Sign in with Google' dono support hain, aur Logout ke waqt Redis use karke JWT token ko security ke liye blacklist kiya jata hai.</li>
+            </ul>
+            <p>Iss project ko maine <strong>MERN Stack (MongoDB, Express, React, Node.js)</strong>, <strong>LangChain</strong>, <strong>Pinecone Vector DB</strong>, aur <strong>Gemini/Mistral AI</strong> models ka use karke banaya hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q2</span>
+          <div class="q-title">LangChain kya hai aur aapne iska use kyu kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"LangChain ek popular framework/tool hai jo Large Language Models (LLMs) jaise Gemini ya OpenAI ko hamare application code aur external tools se connect karne me help karta hai.</p>
+            <p>Maine LangChain ka use 2 main reasons ke liye kiya:</p>
+            <ol>
+              <li><strong>Tool Integration:</strong> LangChain ke dwara maine AI model ko Internet Search (Tavily API) se joda, taaki AI zaroorat padne par khud internet search kar sake.</li>
+              <li><strong>Prompt Management:</strong> System Prompts, PDF Excerpts, aur User History ko systematically format karke LLM ko bhejane ka kaam LangChain bohot aasani se kar deta hai."</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q3</span>
+          <div class="q-title">RAG (Retrieval-Augmented Generation) kya hota hai aur yeh simple words me kaise kaam karta hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"RAG ka simple matlab hai <strong>'AI ko bahar se extra information dekar sahi answer nikalwana'</strong>.</p>
+            <p>Standard AI models (jaise ChatGPT) ke paas aapke private PDF file ka data nahi hota. RAG me:</p>
+            <ol>
+              <li>Pehle hum PDF ke text ko chhote-chhote tukdon (Chunks) me todte hain.</li>
+              <li>Jab user koi sawaal puchta hai, toh hum PDF ke unhi 2-3 sabse relevant chunks ko dhundhte hain.</li>
+              <li>Us relevant text ko AI ke prompt me chipka dete hain aur AI se kehte hain — <em>'Is text ko padho aur user ke sawaal ka jawab do'</em>. Isse AI bina hallucinations ke bilkul accurate answer deta hai.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q4</span>
+          <div class="q-title">Vector Database (Pinecone) kya hai aur hum simple database (jaise MongoDB) ke bajaye vector DB kyu use karte hain?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"MongoDB jaise databases exact text match dhundhte hain (keyword search). Lekin agar user ne alag words use kiye lekin matlab same ho, toh traditional DB fail ho jata hai.</p>
+            <p><strong>Vector Database (Pinecone)</strong> text ke <strong>Matlab (Meaning / Semantics)</strong> ko numbers (Vectors) ke form me store karta hai.</p>
+            <p>Iska fayda yeh hota hai ki agar PDF me likha hai <em>'Car'</em> aur user ne pucha <em>'Automobile'</em>, toh Pinecone samajh jata hai ki dono ka matlab same hai aur sahi text search karke dedeta hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q5</span>
+          <div class="q-title">Embeddings kya hote hain?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Embeddings ka matlab hota hai <strong>Text ko Mathematical Numbers (Array of Floats) me convert karna</strong>.</p>
+            <p>AI models words ko directly nahi samajhte, wo maths aur vectors samajhte hain. Jab hum kisi sentence ko embedding model (jaise <code>mistral-embed</code>) me bhejte hain, toh wo us sentence ke meaning ke hisab se 1024 numbers ki ek list bana deta hai. Similar meaning wale sentences ke numbers aapas me pass (close) hote hain."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q6</span>
+          <div class="q-title">Gemini aur Mistral AI me kya farak hai aur aapne dono ko kyu use kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Dono alag-alag AI models hain aur maine dono ko unki strengths ke hisab se use kiya:</p>
+            <ul>
+              <li><strong>Gemini (Google):</strong> Yeh bohot fast hai aur web search tools ke sath bohot achhe se integrate hota hai, isliye main chat response aur search ke liye Gemini 2.5 Flash use kar raha hu.</li>
+              <li><strong>Mistral AI:</strong> Iska embedding model (<code>mistral-embed</code>) PDF text ko vectors me convert karne ke liye bohot accurate hai, aur iska chhota model (<code>mistral-small</code>) chat ka title generate karne me fast hai.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q7</span>
+          <div class="q-title">JWT (JSON Web Token) kya hai aur authentication me iska kya role hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"JWT ek digital pass/identity card ki tarah hota hai. Jab user login karta hai, toh server user ke data (like <code>userId</code>) ko encrypt karke ek encrypted string (Token) generate karta hai aur client ko bhej deta hai.</p>
+            <p>Next time jab bhi client koi request karta hai, wo yeh Token saath me bhejta hai. Server token ko verify karke samajh jata hai ki user logged in hai. Isse baar-baar password daalne ki zaroorat nahi padti."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q8</span>
+          <div class="q-title">Redis kya hai aur aapne logout function me Redis kyu use kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Redis ek ultra-fast <strong>In-Memory Key-Value Database</strong> hai jo RAM me data store karta hai.</p>
+            <p>JWT Tokens ki problem yeh hoti hai ki expiry se pehle unhe server-side se directly cancel nahi kiya ja sakta. Maine Logout security ke liye Redis use kiya:</p>
+            <ul>
+              <li>Jab user Logout button par click karta hai, toh uske token ko hum Redis me <code>blacklisted</code> mark karke store kar dete hain.</li>
+              <li>Next time agar koi us token se request karega, toh middleware Redis me check karke access deny kar dega.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q9</span>
+          <div class="q-title">Google Sign-In (OAuth) kaise kaam karta hai aapke project me?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <ol>
+              <li>Frontend par user Google ke popup se apna account select karta hai, jahan se ek Google ID Token milti hai.</li>
+              <li>Frontend yeh ID Token humare backend API ko bhejta hai.</li>
+              <li>Backend par <code>google-auth-library</code> us token ko Google se verify karti hai.</li>
+              <li>Verification ke baad agar user humare database me pehle se hai toh direct login ho jata hai, aur agar naya hai toh automatic naya account create ho jata hai.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q10</span>
+          <div class="q-title">Socket.io kya hota hai aur iska use chat application me kyu hota hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Normal HTTP requests me client ko baar-baar server se puchna padta hai (Request-Response).</p>
+            <p><strong>Socket.io</strong> WebSocket protocol par kaam karta hai jo client aur server ke beech ek <strong>2-Way Continuous Connection</strong> bana deta hai. Isse bina page refresh kiye ya bina baar-baar request bheje, server real-time me instant messages client tak bhej sakta hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q11 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q11</span>
+          <div class="q-title">Redux Toolkit kya hai aur React me state management ke liye iska use kyu kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Redux Toolkit ek global state management library hai.</p>
+            <p>Jab application me bohot saare pages hote hain (jaise Login, Chat, Upload Status), toh data ko ek component se dusre component me pass karna mushkil ho jata hai (Prop Drilling). Redux ek Centralized Store bana deta hai jahan se koi bhi component directly state read aur update kar sakta hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q12</span>
+          <div class="q-title">ImageKit kya hai aur PDFs upload karne ke liye iska use kyu kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"ImageKit ek Cloud Media Storage service hai (jaise AWS S3 ya Cloudinary).</p>
+            <p>PDFs ko direct MongoDB me store karne se database heavy aur slow ho jata hai. Isliye PDF files ko ImageKit par upload karke unka permanent Cloud URL le liya jata hai, aur MongoDB me sirf us URL ko store kiya jata hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q13 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q13</span>
+          <div class="q-title">Tavily API kya hai aur yeh web search me kaise help karti hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Tavily ek specialized Search API hai jo AI applications ke liye design ki gayi hai. Normal Google search HTML web pages return karta hai, lekin Tavily search query par internet se sirf clean, structured aur factual text summaries return karta hai jisse AI easily padh kar answer bana sake."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q14 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q14</span>
+          <div class="q-title">Express Middleware kya hota hai aur authUser middleware ka kya kaam hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Express me Middleware ek aisa function hota hai jo request ke Controller tak pahunchne se pehle beech me execute hota hai.</p>
+            <p>Humara <code>authUser</code> middleware har protected request ko check karta hai:</p>
+            <ol>
+              <li>Browser Cookie se JWT Token nikalta hai.</li>
+              <li>Token ki validity verify karta hai.</li>
+              <li>Redis me check karta hai ki token blacklisted toh nahi hai.</li>
+            </ol>
+            <p>Agar sab sahi hai tabhi request ko aage jane deta hai (<code>next()</code>), varna <code>401 Unauthorized</code> error de deta hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q15 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q15</span>
+          <div class="q-title">Iss project ko banane me aapko sabse badi challenge kya aayi aur aapne use kaise solve kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Sabse badi challenge thi <strong>PDF Text Retrieval accuracy</strong>:</p>
+            <p>Shuruat me PDF upload hone par kabhi-kabhi AI irrelevant answer de deta tha. Maine isko solve karne ke liye 2 cheezein fix ki:</p>
+            <ol>
+              <li><strong>Chunking Strategy:</strong> Chunk size ko 400 characters aur 50 overlap par fine-tune kiya taaki context break na ho.</li>
+              <li><strong>Pinecone Namespaces:</strong> Har chat ID ke liye dedicated Pinecone namespace banaya taaki ek user ki PDF ka data kisi dusre user ke query me mix na ho. Isse accuracy 100% resolve ho gayi."</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q16 (NEW ADDED) -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q16</span>
+          <div class="q-title">CORS (Cross-Origin Resource Sharing) kya hota hai aur isse project me kaise handle kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"CORS browser ka ek security mechanism hai jo rokta hai ki ek origin (domain/port) par chalne wala frontend kisi dusre origin ke backend se unauthorized HTTP requests na kar sake.</p>
+            <p>Humara Frontend <code>localhost:5173</code> (Vite) par chal raha tha aur Backend <code>localhost:3000</code> par. Is Cross-Origin issue ko fix karne ke liye backend me <code>cors</code> middleware use kiya:</p>
+            <pre><code>app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true // Cookies pass karne ke liye
+}));</code></pre>
+            <p>Isse Browser authorized backend responses receive karne lagta hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q17 (NEW ADDED) -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q17</span>
+          <div class="q-title">Environment Variables (.env file) kyu use karte hain aur ise .gitignore me kyu rakha jata hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"<code>.env</code> file ka use sensitive keys (jaise <code>GEMINI_API_KEY</code>, <code>JWT_SECRET</code>, <code>MONGO_URI</code>, <code>PINECONE_API_KEY</code>) aur environment-specific configurations ko source code se alag rakhne ke liye kiya jata hai.</p>
+            <p>Ise <code>.gitignore</code> me isliye daala jata hai taaki mistake se bhi confidential secret keys GitHub ya public repository par push na ho jayein, jo ki security breach cause kar sakti hai."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q18 (NEW ADDED) -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q18</span>
+          <div class="q-title">Express me req.body, req.params, aur req.query me kya fark hota hai?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <ul>
+              <li><code>req.body</code>: Form ya JSON data ko HTTP POST/PUT request ke payload se read karne ke liye (e.g. <code>req.body.message</code>).</li>
+              <li><code>req.params</code>: Route URL ke dynamic parameters ko read karne ke liye (e.g. <code>/api/chats/:chatId</code> me <code>req.params.chatId</code>).</li>
+              <li><code>req.query</code>: URL ke query strings ko read karne ke liye (e.g. <code>/api/chats?page=1</code> me <code>req.query.page</code>).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q19 (NEW ADDED) -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q19</span>
+          <div class="q-title">React me useState aur useEffect Hooks ka kya role hai aapke project me?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <ul>
+              <li><code>useState</code>: Local component level state manage karne ke liye use hota hai (jaise user input field ka text, attached PDF file object, ya loading spinner open/close status).</li>
+              <li><code>useEffect</code>: Component Lifecycle ke side-effects handle karne ke liye use hota hai (jaise Component mount hote hi user ke chat history ko backend API se fetch karna, ya WebSocket connection initialize karna).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q20 (NEW ADDED) -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">Q20</span>
+          <div class="q-title">Axios vs Native Fetch API: Aapne Axios kyu prefer kiya?</div>
+          <span class="badge badge-basic">Basic</span>
+        </div>
+        <div class="qa-body">
+          <div class="answer-box">
+            <p><strong>💬 Answer:</strong></p>
+            <p>"Native <code>fetch()</code> ke mukable Axios ke 3 major benefits hain jo maine use kiye:</p>
+            <ol>
+              <li><strong>Automatic JSON Parsing:</strong> Axios response Data ko automatically JSON me parse karta hai (manual <code>res.json()</code> ki zaroorat nahi padti).</li>
+              <li><strong>Easy Cookie Handling:</strong> Axios instance me <code>withCredentials: true</code> globally set kar sakte hain HTTP-Only cookies send karne ke liye.</li>
+              <li><strong>Better Error Handling & Interceptors:</strong> Non-2xx HTTP status codes (jaise 401, 500) par Axios automatically <code>catch</code> block throw karta hai."</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: ADVANCED QUESTIONS (15 Q&A) -->
+    <div id="advanced" class="tab-content qa-list">
+
+      <!-- Adv Q1 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ1</span>
+          <div class="q-title">PDF RAG ka exact architecture aur pipeline code level par samjhao.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Code-level pipeline execution samajhna.</div>
+          <div class="answer-box">
+            <p><strong>Ingestion:</strong> Multer buffer $\rightarrow$ ImageKit CDN upload $\rightarrow$ <code>pdf-parse</code> text extraction $\rightarrow$ <code>RecursiveCharacterTextSplitter</code> (400 size, 50 overlap) $\rightarrow$ <code>mistral-embed</code> (1024-dim) $\rightarrow$ Pinecone namespace (<code>chatId</code>).</p>
+            <p><strong>Query:</strong> Embed user query $\rightarrow$ Pinecone similarity query (<code>topK: 3</code>, threshold > 0.3) $\rightarrow$ Inject chunks in System Prompt $\rightarrow$ Gemini Flash response generation.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q2 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ2</span>
+          <div class="q-title">RecursiveCharacterTextSplitter, Chunk Size 400 & Overlap 50 ka rationale.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Context retention vs vector search accuracy trade-offs.</div>
+          <div class="answer-box">
+            <p>Hierarchical splitting (<code>\n\n</code>, <code>\n</code>, space) preserves structural boundaries. 400 chars ensures narrow, high-density vector representation in <code>mistral-embed</code>. 50 char overlap prevents loss of context at sentence boundaries.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q3 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ3</span>
+          <div class="q-title">Pinecone namespace(chatId) multitenancy design.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Data isolation and query performance.</div>
+          <div class="answer-box">
+            <p>Using <code>pdfIndex.namespace(chatId)</code> restricts vector search to the exact chat session. Eliminates cross-chat data leaks and reduces vector search space to sub-millisecond execution times.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q4 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ4</span>
+          <div class="q-title">Multi-Model LLM strategy selection.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Specialized task distribution & cost optimization.</div>
+          <div class="answer-box">
+            <p>Gemini 2.5 Flash for agent tool-calling (fast, low latency). Mistral Embed for 1024-vector dense embeddings. Mistral Small for background task isolation (title generation).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q5 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ5</span>
+          <div class="q-title">LangChain Agent + Tavily tool ReAct execution loop.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Agentic tool calling and prompt execution.</div>
+          <div class="answer-box">
+            <p>Agent configured with Zod schema tool definition. System prompt triggers LLM to output JSON tool call when real-time news is requested. LangChain executes Tavily API, observes snippets, and feeds back to LLM for final synthesis.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q6 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ6</span>
+          <div class="q-title">Multi-turn chat context window formatting.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> State persistence & prompt window limits.</div>
+          <div class="answer-box">
+            <p>MongoDB messages fetched in order (<code>createdAt: 1</code>), mapped to LangChain's <code>HumanMessage</code>, <code>AIMessage</code>, and <code>SystemMessage</code>. Dynamically appends PDF excerpts to top System Prompt before calling <code>agent.invoke()</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q7 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ7</span>
+          <div class="q-title">Redis Token Blacklisting implementation on Logout.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Stateless JWT revocation handling.</div>
+          <div class="answer-box">
+            <p>On <code>/logout</code>, token stored in Redis: <code>redis.set(token, 'blacklisted', 'EX', ttl)</code>. <code>authUser</code> middleware queries Redis on every request; if token exists in Redis blacklist, request is rejected with HTTP 401.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q8 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ8</span>
+          <div class="q-title">Google OAuth Server-side verification flow.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Secure OAuth token validation.</div>
+          <div class="answer-box">
+            <p>Frontend sends GSI ID Token to backend. <code>google-auth-library</code> verifies token signature via <code>OAuth2Client.verifyIdToken()</code>. Email extracted $\rightarrow$ Auto-register user or log in $\rightarrow$ Issue HTTP-Only JWT cookie.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q9 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ9</span>
+          <div class="q-title">HTTP-Only Cookies vs LocalStorage for JWT storage.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> XSS vs CSRF mitigation awareness.</div>
+          <div class="answer-box">
+            <p>LocalStorage is vulnerable to XSS script reading. HTTP-Only cookies (<code>httpOnly: true</code>, <code>secure: true</code>, <code>sameSite</code>) prevent JavaScript access, eliminating XSS token theft. Sent automatically via Axios <code>withCredentials: true</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q10 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ10</span>
+          <div class="q-title">ImageKit + Pinecone vs Direct MongoDB binary storage.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Separation of Concerns & Storage Optimization.</div>
+          <div class="answer-box">
+            <p>PDF binary blobs bloat MongoDB BSON 16MB limit and cause memory spikes. Separation: ImageKit for CDN asset delivery, Pinecone for vector math & similarity search, MongoDB for lightweight metadata.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q11 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ11</span>
+          <div class="q-title">MongoDB Data Relationship & Indexing design.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Schema design & database execution plan.</div>
+          <div class="answer-box">
+            <p>User, Chat, and Message collections linked via <code>ObjectId</code> references. <code>MessageSchema</code> indexes <code>chat</code> field to optimize chronological message fetching (<code>find({ chat: chatId }).sort({ createdAt: 1 })</code>).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q12 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ12</span>
+          <div class="q-title">Multer & Middleware Validation execution order.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Request Lifecycle & Error Boundaries.</div>
+          <div class="answer-box">
+            <p>Chain order: Security (Helmet/CORS) $\rightarrow$ Body parsers $\rightarrow$ Multer memory storage (size & PDF mime filter) $\rightarrow$ Express Validator / Zod sanitization $\rightarrow$ Controller $\rightarrow$ Centralized Error Handler.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q13 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ13</span>
+          <div class="q-title">Multipart FormData submission & Redux Toolkit UI state.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Async state management & file streams.</div>
+          <div class="answer-box">
+            <p>Hook extracts File object $\rightarrow$ Constructs native <code>FormData</code> $\rightarrow$ Axios POST with <code>multipart/form-data</code> header $\rightarrow$ Redux slice updates <code>isUploadingPdf</code> & optimist message renders.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q14 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ14</span>
+          <div class="q-title">Markdown rendering & DOM XSS protection.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Safe rich-text rendering in React.</div>
+          <div class="answer-box">
+            <p>Uses <code>react-markdown</code> + <code>remark-gfm</code> to safely render code blocks, lists, and tables as native React components without using dangerous <code>dangerouslySetInnerHTML</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adv Q15 -->
+      <div class="qa-card">
+        <div class="qa-header">
+          <span class="q-number">AQ15</span>
+          <div class="q-title">System Design: Scaling to 100k Concurrent Active Users.</div>
+          <span class="badge badge-adv">Advanced</span>
+        </div>
+        <div class="qa-body">
+          <div class="intent-box"><strong>💡 Interviewer Intent:</strong> Architectural scaling & bottlenecks.</div>
+          <div class="answer-box">
+            <p>1. Token Streaming via SSE (reduce TTFT &lt; 500ms).<br>
+               2. Background Worker Queue (BullMQ + Redis) for offloading PDF embedding.<br>
+               3. Socket.io Redis Adapter for horizontal multi-instance scaling.<br>
+               4. Redis caching for duplicate web search queries.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>💡 <strong>Tip:</strong> Search box me kisi bhi keyword ko type karke instant filter karein.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabId === 'basic') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('basic').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('advanced').classList.add('active');
+      }
+      filterQuestions();
+    }
+
+    function filterQuestions() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const activeTab = document.querySelector('.tab-content.active');
+      const cards = activeTab.querySelectorAll('.qa-card');
+
+      cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
